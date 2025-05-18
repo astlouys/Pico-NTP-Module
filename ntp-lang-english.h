@@ -1,0 +1,46 @@
+/* Day-of-week (short format) - Maximum 3 characters. */
+#define $SUN "SUN"
+#define $MON "MON"
+#define $TUE "TUE"
+#define $WED "WED"
+#define $THU "THU"
+#define $FRI "FRI"
+#define $SAT "SAT"
+
+/* Day-of-week (long) - Maximum 12 characters. */
+#define $SUNDAY    "Sunday"
+#define $MONDAY    "Monday"
+#define $TUESDAY   "Tuesday"
+#define $WEDNESDAY "Wednesday"
+#define $THURSDAY  "Thursday"
+#define $FRIDAY    "Friday"
+#define $SATURDAY  "Saturday"
+
+/* Months (short format) - Maximum 3 characters. */
+#define $JAN "JAN"
+#define $FEB "FEB"
+#define $MAR "MAR"
+#define $APR "APR"
+#define $MAY "MAY"
+#define $JUN "JUN"
+#define $JUL "JUL"
+#define $AUG "AUG"
+#define $SEP "SEP"
+#define $OCT "OCT"
+#define $NOV "NOV"
+#define $DEC "DEC"
+
+/* Months - Maximum 12 characters. */
+#define $JANUARY   "January"
+#define $FEBRUARY  "February"
+#define $MARCH     "March"
+#define $APRIL     "April"
+#define $MMAY      "May"
+#define $JUNE      "June"
+#define $JULY      "July"
+#define $AUGUST    "August"
+#define $SEPTEMBER "September"
+#define $OCTOBER   "October"
+#define $NOVEMBER  "November"
+#define $DECEMBER  "December"
+
