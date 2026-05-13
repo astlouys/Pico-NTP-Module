@@ -2,7 +2,7 @@
 
 # Pico-NTP-Module
 
-Add-on C-Language module to merge with your existing (C-Language) project / program,
+Add-on C-Language module to merge with your existing Raspberry Pi Pico (C-Language) project / program,
 to retrieve current time from a Network Time Protocol (NTP) server over the Internet.
 
 With the integrated real-time clock in the Pico, you'll be able to keep track of the
