@@ -8,54 +8,45 @@
 /* ============================================================================================================================================================= *\
    Pico-NTP-Module.h
    Adapted as an "add-on module" for many other projects
-   St-Louys, Andre - January 2024
+   St-Louys, Andre - July 2025
    astlouys@gmail.com
-   Revision 18-APR-2025
-   Version 4.00
-
-   REVISION HISTORY:
-   =================
-               1.00 - Initial version from Raspberry Pi (Trading) Ltd.
-               cmake -DPICO_BOARD=pico_w -DPICO_STDIO_USB=1 -DWIFI_SSID=<NetworkName> -DWIFI_PASSWORD=<Password>
-   18-FEB-2024 2.00 - Adapted for Pico-RGB-Matrix.
-   17-AUG-2024 3.00 - Streamlined as a "library" for many other projects.
-                    - Create a main "struct_ntp" containing all data to be shared with parent program.
-   31-JAN-2025 4.00 - Add integrated support for Daylight Saving Time for most countries of the world.
+   Revision 11-APR-2026
 \* ============================================================================================================================================================= */
 
-#ifndef _NTP_MODULE_H
-#define _NTP_MODULE_H
+#ifndef PICO_NTP_MODULE_H
+#define PICO_NTP_MODULE_H
 
 #include "baseline.h"
+#include "hardware/rtc.h"
 #include "pico/cyw43_arch.h"
 #include "time.h"
 
 
-/* --------------------------------------------------------------------------------------------------------------------------- *\
-                                                      Language definitions.
-\* --------------------------------------------------------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------------------------------------------------- *\
+                                                                       Language definitions.
+\* ------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 #define LANGUAGE_LO_LIMIT 0
-#define ENGLISH           0
-#define CZECH             1
-#define FRENCH            2
-#define GERMAN            3
-#define ITALIAN           4
-#define SPANISH           5
+#define NTP_ENGLISH           0  // English is supported.
+#define NTP_CZECH             1
+#define NTP_FRENCH            2  // French is supported.
+#define NTP_GERMAN            3
+#define NTP_ITALIAN           4
+#define NTP_SPANISH           5
 #define LANGUAGE_HI_LIMIT 5
-/* --------------------------------------------------------------------------------------------------------------------------- *\
-                                                  End of Language definitions.
-\* --------------------------------------------------------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------------------------------------------------- *\
+                                                                    End of Language definitions.
+\* ------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 
-/* Select only one language. */
-#define FIRMWARE_LANGUAGE   FRENCH
-// #define FIRMWARE_LANGUAGE   ENGLISH
+/* Select only one language (only English and English are supported for now). */
+// #define NTP_LANGUAGE   NTP_FRENCH
+#define NTP_LANGUAGE   NTP_ENGLISH
 
 
-#if FIRMWARE_LANGUAGE == ENGLISH
+#if NTP_LANGUAGE == NTP_ENGLISH
 #include "ntp-lang-english.h"
 #endif
 
-#if FIRMWARE_LANGUAGE == FRENCH
+#if NTP_LANGUAGE == NTP_FRENCH
 #include "ntp-lang-french.h"
 #endif
 
@@ -79,11 +70,11 @@
 
 
 
-/* --------------------------------------------------------------------------------------------------------------------------- *\
-                                              Date and time related definitions.
-\* --------------------------------------------------------------------------------------------------------------------------- */
-#define H12  1  // time display mode is 12 hours.
-#define H24  2  // time display mode is 24 hours.
+/* ------------------------------------------------------------------------------------------------------------------------------------------------------------- *\
+                                                                 Date and time related definitions.
+\* ------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+#define H12  1  // time display format is 12 hours.
+#define H24  2  // time display format is 24 hours.
 
 #define SUN 0
 #define MON 1
@@ -115,21 +106,6 @@
 
 
 
-/* Structure to contain time stamp under "human" format instead of "tm" standard. */
-struct human_time
-{
-  UINT8 FlagDst;
-  UINT8 Hour;
-  UINT8 Minute;
-  UINT8 Second;
-  UINT8 DayOfWeek;
-  UINT8 DayOfMonth;
-  UINT8 Month;
-  UINT16 Year;
-  UINT16 DayOfYear;
-};
-
-
 struct struct_ntp
 {
   UINT8  FlagSuccess;            // flag indicating that NTP date and time request has succeeded.
@@ -150,75 +126,36 @@ struct struct_ntp
   UINT32 PollCycles;
   INT32  Latency;
   bool   DNSRequestSent;
-  alarm_id_t       ResendAlarm;
-  absolute_time_t  UpdateTime;
-  /// absolute_time_t  Send;
-  /// absolute_time_t  Receive;
-  UINT32  Send;
-  UINT32  Receive;
-  ip_addr_t        ServerAddress;
-  time_t           UTCTime;
-  time_t           LocalTime;
-  struct udp_pcb  *Pcb;
+  alarm_id_t        ResendAlarm;
+  absolute_time_t   UpdateTime;
+  UINT64            Send;
+  UINT64            Receive;
+  ip_addr_t         ServerAddress;
+  time_t            UTCTime;
+  time_t            LocalTime;
+  struct udp_pcb   *Pcb;
   struct human_time HumanTime;
 };
 
-
-#if 0
-struct dst_parameters
-{
-  UINT8  StartMonth;
-  UINT8  StartDayOfWeek;
-  int8_t StartDayOfMonthLow;
-  int8_t StartDayOfMonthHigh;
-  UINT8  StartHour;
-  UINT16 StartDayOfYear;
-  UINT8  EndMonth;
-  UINT8  EndDayOfWeek;
-  int8_t EndDayOfMonthLow;
-  int8_t EndDayOfMonthHigh;
-  UINT8  EndHour;
-  UINT16 EndDayOfYear;
-  UINT8  ShiftMinutes;
-}DstParameters[25];
-
-struct dst_parameters DstParameters[25] =
-{
-  { 0,  0,  0,  0, 24,  0,  0,  0,  0,  0,  0,  0, 60},  //  0 - Dummy
-  {10,  0,  1,  7,  2,  0,  4,  0,  1,  7,  3,  0, 60},  //  1 - Australia
-  {10,  0,  1,  7,  2,  0,  4,  0,  1,  7,  2,  0, 30},  //  2 - Australia-Howe
-  { 9,  6,  1,  7, 24,  0,  4,  6,  1,  7, 24,  0, 60},  //  3 - Chile           (StartHour and EndHour changes at 24h00, will change at 00h00 the day after)
-  { 3,  0,  8, 14,  0,  0, 11,  0,  1,  7,  1,  0, 60},  //  4 - Cuba
-  { 3,  0, 25, 31,  1,  0, 10,  0, 25, 31,  1,  0, 60},  //  5 - European Union  (StartHour and EndHour are based on UTC time)
-  { 3,  5, 23, 29,  2,  0, 10,  0, 25, 31,  2,  0, 60},  //  6 - Israel
-  { 3,  0, 25, 31,  0,  0, 10,  0, 25, 31,  0,  0, 60},  //  7 - Lebanon
-  { 3,  0, 25, 31,  2,  0, 10,  0, 25, 31,  3,  0, 60},  //  8 - Moldova
-  { 9,  0, 24, 30,  2,  0,  4,  0,  1,  7,  2,  0, 60},  //  9 - New-Zealand     (StartHour and EndHour are based on UTC time)
-  { 3,  0,  8, 14,  2,  0, 11,  0,  1,  7,  2,  0, 60},  // 10 - North America
-  { 3,  6, 24, 30,  2,  0, 10,  6, 24, 30,  2,  0, 60},  // 11 - Palestine
-  {10,  0,  1,  7,  0,  0,  3,  0, 22, 28,  0,  0, 60},  // 12 - Paraguay
-};
-#endif  // 0
-#define MAX_DST_COUNTRIES 12
-
+#define MAX_DST_COUNTRIES 13  // maximum number of timezones defined + 1 (to include 0 = undefined).
 
 /* Convert "HumanTime" to "tm_time". */
 void ntp_convert_human_to_tm(struct human_time *HumanTime, struct tm *TmTime);
 
 /* Convert "HumanTime" to "Unix Time". */
-UINT64 ntp_convert_human_to_unix(struct human_time *HumanTime);
+UINT64 ntp_convert_human_to_unix(struct human_time *HumanTime, INT16 OffsetMinutes);
 
 /* Convert "TmTime" to "Unix Time". */
 UINT64 ntp_convert_tm_to_unix(struct tm *TmTime);
 
 /* Convert Unix time to tm time and human time. */
-void ntp_convert_unix_time(time_t UnixTime, struct tm *TmTime, struct struct_ntp *StructNTP);
+void ntp_convert_unix_time(time_t UnixTime, struct tm *TmTime);
 
 /* Display NTP-related information. */
-void ntp_display_info(struct struct_ntp *StructNTP);
+void ntp_display_info(void);
 
 /* Set parameters required for Daily Saving Time automatic handling. */
-void ntp_dst_settings(struct struct_ntp *StructNTP);
+void ntp_dst_settings(void);
 
 /* Return the day-of-week for the specified date. Sunday =  (...) Saturday =  */
 UINT8 ntp_get_day_of_week(UINT8 DayOfMonth, UINT8 Month, UINT16 Year);
@@ -230,15 +167,15 @@ UINT16 ntp_get_day_of_year(UINT8 DayOfMonth, UINT8 Month, UINT16 Year);
 UINT8 ntp_get_month_days(UINT8 MonthNumber, UINT16 TargetYear);
 
 /* Retrieve current utc time from NTP server. */
-void ntp_get_time(struct struct_ntp *StructNTP);
+void ntp_get_time(void);
 
 /* Initialize variables require for NTP connection. */
-UINT8 ntp_init(struct struct_ntp *StructNTP);
+UINT8 ntp_init(void);
 
 /* Called with results of operation. */
-void ntp_result(INT16 ResultStatus, time_t *UnixTime, struct struct_ntp *StructNTP);
+void ntp_result(INT16 ResultStatus, time_t *UnixTime);
 
 /* Send a string to external monitor through Pico UART (or USB CDC). */
-extern void log_info(UINT LineNumber, const UCHAR *FunctionName, UCHAR *Format, ...);
+extern void log_printf(UINT LineNumber, const UCHAR *FunctionName, UCHAR *Format, ...);
 
-#endif  // _NTP_MODULE_H
+#endif  // PICO_NTP_MODULE_H

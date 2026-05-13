@@ -35,6 +35,35 @@ set (CXX_STANDARD 17)
 pico_sdk_init()
 #
 #
+# =====================================================================================================================
+#                                         Optionally add options to the compiler.
+# =====================================================================================================================
+add_compile_options(
+#         -Wall
+#         -Wdeclaration-after-statement
+        -Wno-format
+        -Wimplicit-function-declaration
+        -Wimplicit-int
+        -Wincompatible-pointer-types
+        -Winfinite-recursion
+        -Wint-conversion
+        -Wmaybe-uninitialized
+        -Wmisleading-indentation
+        -Wparentheses
+        -Wreturn-type
+        -Wshift-negative-value
+        -Wuninitialized
+        -Wunused
+        -Wunused-but-set-parameter
+        -Wunused-but-set-variable
+        -Wunused-function
+        -Wunused-label
+        -Wunused-parameter
+        -Wunused-variable
+)
+#
+#
+#
 if (PICO_CYW43_SUPPORTED) # set by BOARD=pico-w
   if (NOT TARGET pico_cyw43_arch)
     message("Skipping build as support is not available")
@@ -100,6 +129,7 @@ if (PICO_CYW43_SUPPORTED) # set by BOARD=pico-w
       # Add libraries requested to the build
       target_link_libraries(
         Pico-NTP-Example
+        hardware_adc
         hardware_clocks
         hardware_rtc
         pico_cyw43_arch_lwip_threadsafe_background
